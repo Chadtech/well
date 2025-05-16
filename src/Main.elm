@@ -188,7 +188,7 @@ initJsonText =
         "description": "Set the building on fire.",
         "status": "To Do",
         "assignee": "Lyla Harper"
-
+    },
     {
         "title": "Catch Up Work - Saturday",
         "description": "Gonna need you to come into work on Saturday",
