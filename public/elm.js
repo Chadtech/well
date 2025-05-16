@@ -9021,11 +9021,14 @@ var $author$project$View$Textarea$readOnly = function (value) {
 	return {onInput: $elm$core$Maybe$Nothing, value: value};
 };
 var $author$project$Main$jsonView = F2(
-	function (maybeError, jsonTextField) {
+	function (jsonDialogModel, jsonTextField) {
 		var closeButton = $author$project$View$Button$toHtml(
 			A2($author$project$View$Button$secondary, 'Close', $author$project$Main$ClickedCloseDialog));
-		if (maybeError.$ === 'Just') {
-			var error = maybeError.a;
+		var _v0 = jsonDialogModel.jsonParseError;
+		if (_v0.$ === 'Just') {
+			var error = _v0.a;
+			var goBackButton = jsonDialogModel.renderGoBackButton ? $author$project$View$Button$toHtml(
+				A2($author$project$View$Button$secondary, 'Go Back', $author$project$Main$ClickedGoBackToJson)) : $rtfeldman$elm_css$Html$Styled$text('');
 			return _List_fromArray(
 				[
 					$rtfeldman$elm_css$Html$Styled$text('Error parsing JSON'),
@@ -9041,11 +9044,7 @@ var $author$project$Main$jsonView = F2(
 								[$author$project$Style$row, $author$project$Style$g4, $author$project$Style$justifyEnd]))
 						]),
 					_List_fromArray(
-						[
-							$author$project$View$Button$toHtml(
-							A2($author$project$View$Button$primary, 'Go Back', $author$project$Main$ClickedGoBackToJson)),
-							closeButton
-						]))
+						[goBackButton, closeButton]))
 				]);
 		} else {
 			return _List_fromArray(
@@ -9285,13 +9284,13 @@ var $author$project$Main$dialogView = function (model) {
 			case 'Dialog__None':
 				return $author$project$View$Dialog$none;
 			case 'Dialog__Json':
-				var rec = _v0.a;
-				var bg = _Utils_eq(rec.jsonParseError, $elm$core$Maybe$Nothing) ? $author$project$Style$bgGray1 : $author$project$Style$bgRed0;
+				var subModel = _v0.a;
+				var bg = _Utils_eq(subModel.jsonParseError, $elm$core$Maybe$Nothing) ? $author$project$Style$bgGray1 : $author$project$Style$bgRed0;
 				return A2(
 					$author$project$View$Dialog$fromBody,
 					_List_fromArray(
 						[$author$project$Style$col, $author$project$Style$outdent, bg, $author$project$Style$g4, $author$project$Style$w196, $author$project$Style$h128]),
-					A2($author$project$Main$jsonView, rec.jsonParseError, model.jsonTextField));
+					A2($author$project$Main$jsonView, subModel, model.jsonTextField));
 			case 'Dialog__AddTask':
 				var subModel = _v0.a;
 				return A2(
@@ -9628,6 +9627,14 @@ var $elm$core$Tuple$pair = F2(
 	function (a, b) {
 		return _Utils_Tuple2(a, b);
 	});
+var $rtfeldman$elm_css$Css$alignItems = function (fn) {
+	return A3(
+		$rtfeldman$elm_css$Css$Internal$getOverloadedProperty,
+		'alignItems',
+		'align-items',
+		fn($rtfeldman$elm_css$Css$Internal$lengthForOverloadedProperty));
+};
+var $author$project$Style$itemsCenter = $rtfeldman$elm_css$Css$alignItems($rtfeldman$elm_css$Css$center);
 var $rtfeldman$elm_css$Css$auto = {alignItemsOrAuto: $rtfeldman$elm_css$Css$Structure$Compatible, cursor: $rtfeldman$elm_css$Css$Structure$Compatible, flexBasis: $rtfeldman$elm_css$Css$Structure$Compatible, intOrAuto: $rtfeldman$elm_css$Css$Structure$Compatible, justifyContentOrAuto: $rtfeldman$elm_css$Css$Structure$Compatible, lengthOrAuto: $rtfeldman$elm_css$Css$Structure$Compatible, lengthOrAutoOrCoverOrContain: $rtfeldman$elm_css$Css$Structure$Compatible, lengthOrNumberOrAutoOrNoneOrContent: $rtfeldman$elm_css$Css$Structure$Compatible, overflow: $rtfeldman$elm_css$Css$Structure$Compatible, pointerEvents: $rtfeldman$elm_css$Css$Structure$Compatible, tableLayout: $rtfeldman$elm_css$Css$Structure$Compatible, textRendering: $rtfeldman$elm_css$Css$Structure$Compatible, touchAction: $rtfeldman$elm_css$Css$Structure$Compatible, value: 'auto'};
 var $rtfeldman$elm_css$Css$overflow = $rtfeldman$elm_css$Css$prop1('overflow');
 var $author$project$Style$overflowAuto = $rtfeldman$elm_css$Css$overflow($rtfeldman$elm_css$Css$auto);
@@ -9781,6 +9788,33 @@ var $elm$core$Array$toIndexedList = function (array) {
 		array).b;
 };
 var $author$project$Main$statusColumnsView = function (model) {
+	var statuses = $author$project$Ext$UniqueList$toList(model.statuses);
+	var body = $elm$core$List$isEmpty(statuses) ? _List_fromArray(
+		[
+			A2(
+			$rtfeldman$elm_css$Html$Styled$div,
+			_List_fromArray(
+				[
+					$rtfeldman$elm_css$Html$Styled$Attributes$css(
+					_List_fromArray(
+						[$author$project$Style$row, $author$project$Style$g4, $author$project$Style$justifyCenter, $author$project$Style$itemsCenter, $author$project$Style$flex1]))
+				]),
+			_List_fromArray(
+				[
+					$rtfeldman$elm_css$Html$Styled$text('No tasks loaded. Please load some tasks, and they will display here.')
+				]))
+		]) : A2(
+		$elm$core$List$map,
+		A2(
+			$author$project$Main$statusColumn,
+			A2(
+				$elm$core$Maybe$map,
+				function ($) {
+					return $.taskIndex;
+				},
+				$author$project$Main$taskBeingDragged(model.mouseDrag)),
+			$elm$core$Array$toIndexedList(model.tasks)),
+		statuses);
 	return A2(
 		$rtfeldman$elm_css$Html$Styled$div,
 		_List_fromArray(
@@ -9789,18 +9823,7 @@ var $author$project$Main$statusColumnsView = function (model) {
 				_List_fromArray(
 					[$author$project$Style$row, $author$project$Style$g4, $author$project$Style$overflowAuto, $author$project$Style$flex1, $author$project$Style$px4, $author$project$Style$pb4]))
 			]),
-		A2(
-			$elm$core$List$map,
-			A2(
-				$author$project$Main$statusColumn,
-				A2(
-					$elm$core$Maybe$map,
-					function ($) {
-						return $.taskIndex;
-					},
-					$author$project$Main$taskBeingDragged(model.mouseDrag)),
-				$elm$core$Array$toIndexedList(model.tasks)),
-			$author$project$Ext$UniqueList$toList(model.statuses)));
+		body);
 };
 var $author$project$Main$view = function (model) {
 	var draggedTask = A2(
@@ -9896,7 +9919,8 @@ var $author$project$Main$init = function (flagsDecodeResult) {
 				assignees: $author$project$Ext$UniqueList$empty,
 				dialog: $author$project$Main$Dialog__Json(
 					{
-						jsonParseError: $elm$core$Maybe$Just(err)
+						jsonParseError: $elm$core$Maybe$Just(err),
+						renderGoBackButton: false
 					}),
 				jsonTextField: '',
 				mouseDrag: $author$project$Main$MouseDrag__Ready,
@@ -9908,7 +9932,7 @@ var $author$project$Main$init = function (flagsDecodeResult) {
 	}();
 	return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 };
-var $author$project$Main$initJsonText = '[\n    {\n        "title": "Express Myself",\n        "description": "Set the building on fire.",\n        "status": "To Do",\n        "assignee": "Lyla Harper"\n    },\n    {\n        "title": "Catch Up Work - Saturday",\n        "description": "Gonna need you to come into work on Saturday",\n        "status": "In Progress",\n        "assignee": "Hayes Aguirre"\n    },\n    {\n        "title": "Catch Up Work - Sunday",\n        "description": "Gonna need you to com into work on Sunday too.",\n        "status": "In Progress",\n        "assignee": "Ariah Koch"\n    },\n    {\n        "title": "TPS Reports",\n        "description": "Did you get the memo?",\n        "status": "Done",\n        "assignee": "Salvador Vega"\n    },\n    {\n        "title": "Buy some more \\"Flare\\"",\n        "description": "Apparently, 13 is not the minimum number of Flare.",\n        "status": "Done",\n        "assignee": "Dakota Calhoun"\n    },\n    {\n        "title": "Move desk into storage room B",\n        "description": "See if you can take care of some of the rat problem while you\'re down here.",\n        "status": "Done",\n        "assignee": "Gary Crane"\n    }\n]';
+var $author$project$Main$initJsonText = '[\n    {\n        "title": "Express Myself",\n        "description": "Set the building on fire.",\n        "status": "To Do",\n        "assignee": "Lyla Harper"\n\n    {\n        "title": "Catch Up Work - Saturday",\n        "description": "Gonna need you to come into work on Saturday",\n        "status": "In Progress",\n        "assignee": "Hayes Aguirre"\n    },\n    {\n        "title": "Catch Up Work - Sunday",\n        "description": "Gonna need you to com into work on Sunday too.",\n        "status": "In Progress",\n        "assignee": "Ariah Koch"\n    },\n    {\n        "title": "TPS Reports",\n        "description": "Did you get the memo?",\n        "status": "Done",\n        "assignee": "Salvador Vega"\n    },\n    {\n        "title": "Buy some more \\"Flare\\"",\n        "description": "Apparently, 13 is not the minimum number of Flare.",\n        "status": "Done",\n        "assignee": "Dakota Calhoun"\n    },\n    {\n        "title": "Move desk into storage room B",\n        "description": "See if you can take care of some of the rat problem while you\'re down here.",\n        "status": "Done",\n        "assignee": "Gary Crane"\n    }\n]';
 var $author$project$Task_$Task = F4(
 	function (status, title, description, assignee) {
 		return {assignee: assignee, description: description, status: status, title: title};
@@ -10637,7 +10661,8 @@ var $author$project$Main$update = F2(
 							$author$project$Main$setDialog,
 							$author$project$Main$Dialog__Json(
 								{
-									jsonParseError: $elm$core$Maybe$Just(error)
+									jsonParseError: $elm$core$Maybe$Just(error),
+									renderGoBackButton: true
 								}),
 							model),
 						$elm$core$Platform$Cmd$none);
@@ -10704,7 +10729,7 @@ var $author$project$Main$update = F2(
 					A2(
 						$author$project$Main$setDialog,
 						$author$project$Main$Dialog__Json(
-							{jsonParseError: $elm$core$Maybe$Nothing}),
+							{jsonParseError: $elm$core$Maybe$Nothing, renderGoBackButton: true}),
 						model),
 					$elm$core$Platform$Cmd$none);
 			case 'ClickedCloseDialog':
@@ -10777,7 +10802,7 @@ var $author$project$Main$update = F2(
 					A2(
 						$author$project$Main$setDialog,
 						$author$project$Main$Dialog__Json(
-							{jsonParseError: $elm$core$Maybe$Nothing}),
+							{jsonParseError: $elm$core$Maybe$Nothing, renderGoBackButton: true}),
 						model),
 					$elm$core$Platform$Cmd$none);
 		}

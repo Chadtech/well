@@ -65,9 +65,19 @@ at any given time there can only be one dialog on the screen at once.
 -}
 type Dialog
     = Dialog__None
-    | Dialog__Json { jsonParseError : Maybe JD.Error }
+    | Dialog__Json JsonDialogModel
     | Dialog__AddTask AddTask.Model
     | Dialog__Error { error : String }
+
+
+type alias JsonDialogModel =
+    { jsonParseError : Maybe JD.Error
+
+    -- Depending on how the json dialog was initialized, we may or
+    -- may not want to render a "go back" button, because there
+    -- might not have been anywhere the user came from, to go back to.
+    , renderGoBackButton : Bool
+    }
 
 
 {-| The MouseDrag type represents the state of the mouse drag operation.
@@ -158,7 +168,11 @@ init flagsDecodeResult =
                     , statuses = UniqueList.empty
                     , assignees = UniqueList.empty
                     , tasks = Array.empty
-                    , dialog = Dialog__Json { jsonParseError = Just err }
+                    , dialog =
+                        Dialog__Json
+                            { jsonParseError = Just err
+                            , renderGoBackButton = False
+                            }
                     , mouseDrag = MouseDrag__Ready
                     , mousePos = Nothing
                     }
@@ -174,7 +188,7 @@ initJsonText =
         "description": "Set the building on fire.",
         "status": "To Do",
         "assignee": "Lyla Harper"
-    },
+
     {
         "title": "Catch Up Work - Saturday",
         "description": "Gonna need you to come into work on Saturday",
@@ -318,7 +332,12 @@ update msg model =
                     -- If we cannot parse the json text into `Flags`, then
                     -- store the error so it can be rendered
                     ( model
-                        |> setDialog (Dialog__Json { jsonParseError = Just error })
+                        |> setDialog
+                            (Dialog__Json
+                                { jsonParseError = Just error
+                                , renderGoBackButton = True
+                                }
+                            )
                     , Cmd.none
                     )
 
@@ -371,7 +390,12 @@ update msg model =
 
         ClickedJsonView ->
             ( model
-                |> setDialog (Dialog__Json { jsonParseError = Nothing })
+                |> setDialog
+                    (Dialog__Json
+                        { jsonParseError = Nothing
+                        , renderGoBackButton = True
+                        }
+                    )
             , Cmd.none
             )
 
@@ -446,7 +470,12 @@ update msg model =
 
         ClickedGoBackToJson ->
             ( model
-                |> setDialog (Dialog__Json { jsonParseError = Nothing })
+                |> setDialog
+                    (Dialog__Json
+                        { jsonParseError = Nothing
+                        , renderGoBackButton = True
+                        }
+                    )
             , Cmd.none
             )
 
@@ -583,11 +612,11 @@ dialogView model =
                 Dialog__None ->
                     DialogView.none
 
-                Dialog__Json rec ->
+                Dialog__Json subModel ->
                     let
                         bg : Css.Style
                         bg =
-                            if rec.jsonParseError == Nothing then
+                            if subModel.jsonParseError == Nothing then
                                 S.bgGray1
 
                             else
@@ -601,7 +630,7 @@ dialogView model =
                         , S.w196
                         , S.h128
                         ]
-                        (jsonView rec.jsonParseError model.jsonTextField)
+                        (jsonView subModel model.jsonTextField)
 
                 Dialog__AddTask subModel ->
                     AddTask.dialog
@@ -659,6 +688,38 @@ draggedTaskView maybeMousePos maybeDraggedTask =
 
 statusColumnsView : Model -> Html Msg
 statusColumnsView model =
+    let
+        statuses : List Status
+        statuses =
+            model.statuses
+                |> UniqueList.toList
+
+        body : List (Html Msg)
+        body =
+            if List.isEmpty statuses then
+                [ Html.div
+                    [ Attr.css
+                        [ S.row
+                        , S.g4
+                        , S.justifyCenter
+                        , S.itemsCenter
+                        , S.flex1
+                        ]
+                    ]
+                    [ Html.text "No tasks loaded. Please load some tasks, and they will display here."
+                    ]
+                ]
+
+            else
+                List.map
+                    (statusColumn
+                        (taskBeingDragged model.mouseDrag
+                            |> Maybe.map .taskIndex
+                        )
+                        (Array.toIndexedList model.tasks)
+                    )
+                    statuses
+    in
     Html.div
         [ Attr.css
             [ S.row
@@ -669,16 +730,7 @@ statusColumnsView model =
             , S.pb4
             ]
         ]
-        (model.statuses
-            |> UniqueList.toList
-            |> List.map
-                (statusColumn
-                    (taskBeingDragged model.mouseDrag
-                        |> Maybe.map .taskIndex
-                    )
-                    (Array.toIndexedList model.tasks)
-                )
-        )
+        body
 
 
 statusColumn : Maybe Int -> List ( Int, Task ) -> Status -> Html Msg
@@ -781,16 +833,26 @@ taskBodyView task =
     ]
 
 
-jsonView : Maybe JD.Error -> String -> List (Html Msg)
-jsonView maybeError jsonTextField =
+jsonView : JsonDialogModel -> String -> List (Html Msg)
+jsonView jsonDialogModel jsonTextField =
     let
         closeButton : Html Msg
         closeButton =
             Button.secondary "Close" ClickedCloseDialog
                 |> Button.toHtml
     in
-    case maybeError of
+    case jsonDialogModel.jsonParseError of
         Just error ->
+            let
+                goBackButton : Html Msg
+                goBackButton =
+                    if jsonDialogModel.renderGoBackButton then
+                        Button.secondary "Go Back" ClickedGoBackToJson
+                            |> Button.toHtml
+
+                    else
+                        Html.text ""
+            in
             [ Html.text "Error parsing JSON"
             , Textarea.readOnly (JD.errorToString error)
                 |> Textarea.toHtml
@@ -801,8 +863,7 @@ jsonView maybeError jsonTextField =
                     , S.justifyEnd
                     ]
                 ]
-                [ Button.primary "Go Back" ClickedGoBackToJson
-                    |> Button.toHtml
+                [ goBackButton
                 , closeButton
                 ]
             ]
