@@ -12,7 +12,6 @@ import Assignee exposing (Assignee)
 import Ext.Browser as BrowserExt
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes as Attr
-import Html.Styled.Events as Ev
 import Status exposing (Status)
 import Style as S
 import Task_ exposing (Task)
@@ -96,6 +95,11 @@ closeDropdown =
 ---------------------------------------------------------------
 
 
+{-| This module is using the OutMsg pattern. OutMsgs are messages this module sends to communicate
+with the main app that is using this module. It is a way for this module to say things like "the users
+clicked 'create new task'. Here is the task. You can close me now.", and the main app can respond
+accordingly.
+-}
 type OutMsg
     = NoOut
     | NewTask Task

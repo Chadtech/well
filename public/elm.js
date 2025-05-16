@@ -10531,7 +10531,7 @@ var $author$project$Main$setMouseDrag = F2(
 			model,
 			{mouseDrag: mouseDrag});
 	});
-var $author$project$Main$setTaskStatus = F2(
+var $author$project$Task_$setStatus = F2(
 	function (status, task) {
 		return _Utils_update(
 			task,
@@ -10679,7 +10679,7 @@ var $author$project$Main$update = F2(
 						A3(
 							$author$project$Main$mapTask,
 							rec.taskIndex,
-							$author$project$Main$setTaskStatus(status),
+							$author$project$Task_$setStatus(status),
 							model),
 						$elm$core$Platform$Cmd$none);
 				} else {

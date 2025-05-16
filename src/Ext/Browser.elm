@@ -4,6 +4,8 @@ import Browser.Events
 import Json.Decode as JD exposing (Decoder)
 
 
+{-| A subscription for click events that happen outside of a particular html element.
+-}
 clickedOutside : { htmlId : String, msg : msg } -> Sub msg
 clickedOutside { htmlId, msg } =
     let

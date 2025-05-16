@@ -1,4 +1,7 @@
-module Task_ exposing (Task)
+module Task_ exposing
+    ( Task
+    , setStatus
+    )
 
 import Assignee exposing (Assignee)
 import Status exposing (Status)
@@ -15,4 +18,17 @@ type alias Task =
     , title : String
     , description : String
     , assignee : Assignee
+    }
+
+
+
+----------------------------------------------------------------
+-- API --
+----------------------------------------------------------------
+
+
+setStatus : Status -> Task -> Task
+setStatus status task =
+    { task
+        | status = status
     }

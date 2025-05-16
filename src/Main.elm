@@ -262,13 +262,6 @@ mapTask taskIndex f model =
     }
 
 
-setTaskStatus : Status -> Task -> Task
-setTaskStatus status task =
-    { task
-        | status = status
-    }
-
-
 setDialog : Dialog -> Model -> Model
 setDialog dialog model =
     { model
@@ -344,8 +337,9 @@ update msg model =
         ColumnStatus status ->
             case model.mouseDrag of
                 MouseDrag__WaitingForColumn rec ->
-                    ( mapTask rec.taskIndex
-                        (setTaskStatus status)
+                    ( mapTask
+                        rec.taskIndex
+                        (Task_.setStatus status)
                         model
                     , Cmd.none
                     )
