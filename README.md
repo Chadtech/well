@@ -19,14 +19,16 @@ and read the code.
 
 `src/Assignee.elm`, `src/Task_.elm`, and `src/Status.elm`, are all modules to represent specific domain entities of the app. 
 
-`src/AddTask.elm` is a sub-module for the dialog box for adding a task. 
+`src/AddTask.elm` is a sub-module for the dialog box for adding a task.
+
+`src/Style.elm` is a huge module of all kinds of common css styles, largely inspired by tailwind css.
 
 ## /src/View
 The directory `src/View` is for re-usable view components like buttons, dropdowns, dialogs, and text fields.
 
 ## /src/Ext
 "Ext" is an abbreviation of "Extension", and all the modules in it are likely extensions of the core Elm libraries. For example, the
-`src/Ext` directory includes `List.elm`, which contains functions for working with `Lists`. 
+`src/Ext/List.elm` contains functions for working with `Lists` that are not part of the core Elm list module.. 
 
 ## /public/index.html
 There is one bit of JavaScript code that is embedded directly in the index.html file. This javascript is for figuring out which status column a user's mouse events were over, so that the Elm app can know which status to assign to a task that has been dragged and dropped.

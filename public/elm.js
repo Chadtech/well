@@ -10335,8 +10335,8 @@ var $author$project$Main$Dialog__Json = function (a) {
 var $author$project$Main$MouseDrag__Dragging = function (a) {
 	return {$: 'MouseDrag__Dragging', a: a};
 };
-var $author$project$Main$MouseDrag__WaitingForColumn = function (a) {
-	return {$: 'MouseDrag__WaitingForColumn', a: a};
+var $author$project$Main$MouseDrag__WaitingForStatusColumnInfo = function (a) {
+	return {$: 'MouseDrag__WaitingForStatusColumnInfo', a: a};
 };
 var $author$project$Main$setDialog = F2(
 	function (dialog, model) {
@@ -10660,7 +10660,7 @@ var $author$project$Main$update = F2(
 					return _Utils_Tuple2(
 						A2(
 							$author$project$Main$setMouseDrag,
-							$author$project$Main$MouseDrag__WaitingForColumn(
+							$author$project$Main$MouseDrag__WaitingForStatusColumnInfo(
 								{taskIndex: taskPositioning.taskIndex}),
 							model),
 						$author$project$Main$findColumnStatus(
@@ -10673,7 +10673,7 @@ var $author$project$Main$update = F2(
 			case 'ColumnStatus':
 				var status = msg.a;
 				var _v3 = model.mouseDrag;
-				if (_v3.$ === 'MouseDrag__WaitingForColumn') {
+				if (_v3.$ === 'MouseDrag__WaitingForStatusColumnInfo') {
 					var rec = _v3.a;
 					return _Utils_Tuple2(
 						A3(

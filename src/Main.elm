@@ -23,13 +23,13 @@ import View.Textarea as Textarea
 
 {-| This is a port that leaves the Elm run time, to determine which
 status column the user released their mouse click over. The (Int, Int) are
-the x and y coordinates of the mouse click. T
+the x and y coordinates of the mouse click.
 -}
 port findColumnStatus : ( Int, Int ) -> Cmd msg
 
 
-{-| This is a port from Javascript, notifying the Elm run time what status
-the user released their mouse click over
+{-| This is a port from JavaScript to Elm, notifying the Elm run time what status
+the user released their mouse click over.
 -}
 port columnStatus : (String -> msg) -> Sub msg
 
@@ -44,7 +44,7 @@ type alias Model =
     { jsonTextField : String
 
     -- These are the statuses and assignees available in the app
-    -- They are a stored in a UniqueList to prevent duplicates
+    -- They are a stored in a UniqueList to prevent duplicate elements.
     , statuses : UniqueList Status
     , assignees : UniqueList Assignee
 
@@ -59,8 +59,8 @@ type alias Model =
     }
 
 
-{-| The Dialog type represents all the possibel dialog boxes that could
-open in this app. It is modelled as a custom type to reflect the fact that
+{-| The Dialog type represents all the possible dialog boxes that could
+open in this app. It is modeled as a custom type to reflect the fact that
 at any given time there can only be one dialog on the screen at once.
 -}
 type Dialog
@@ -75,17 +75,18 @@ type Dialog
 type MouseDrag
     = MouseDrag__Ready
     | MouseDrag__Dragging TaskPositioning
-    | MouseDrag__WaitingForColumn { taskIndex : Int }
+    | MouseDrag__WaitingForStatusColumnInfo { taskIndex : Int }
 
 
 {-| As an individual task is being dragged to a new status column, we need
 to store information about:
 
-1.  The index of the task in the array
-2.  The x and y coordinates of the click on the task, relative to the task itself,
-    so that the mouse position on the task will not change when we start dragging it.
-3.  The width of the task, so that it can be rendered with the same width as it is
-    being dragged.
+1.  The index of the task with respect to the `Array` stored in the main `Model`.
+2.  The x and y coordinates of the click on the task, relative to the task itself
+    in the ui, so that the mouse position on the task will not change when the users
+    starts dragging it.
+3.  The width of the task, so that it can be rendered with the same width it had in
+    the column, as it is being dragged.
 
 -}
 type alias TaskPositioning =
@@ -96,6 +97,10 @@ type alias TaskPositioning =
     }
 
 
+{-| This is the main Msg type of this application. I like to think of `Msg` in Elm
+as a list of all the things that can possibly happen. I therefore also try my best
+to name them as past tense descriptions of what happened
+-}
 type Msg
     = ClickedUseJson
     | ChangedJsonText String
@@ -121,6 +126,9 @@ type alias Pos =
 --------------------------------------------------------
 
 
+{-| Flags are the initializing values of the Elm app, kind of like a
+config or a payload of data the Elm app needs to start.
+-}
 type alias Flags =
     { statuses : UniqueList Status
     , assignees : UniqueList Assignee
@@ -190,8 +198,7 @@ initJsonText =
 
 
 {-| This function tries to parse a json string into the `Flags`, which
-are the initializing values of this Elm app. The `Flags` contain information like,
-the tasks, the statuses, and the assignees.
+are the initializing values of this Elm app.
 -}
 parseJsonText : String -> Result JD.Error Flags
 parseJsonText jsonText =
@@ -234,7 +241,7 @@ taskBeingDragged mouseDrag =
         MouseDrag__Dragging rec ->
             Just rec
 
-        MouseDrag__WaitingForColumn _ ->
+        MouseDrag__WaitingForStatusColumnInfo _ ->
             Nothing
 
 
@@ -322,7 +329,7 @@ update msg model =
                 Just taskPositioning ->
                     ( model
                         |> setMouseDrag
-                            (MouseDrag__WaitingForColumn
+                            (MouseDrag__WaitingForStatusColumnInfo
                                 { taskIndex = taskPositioning.taskIndex }
                             )
                     , findColumnStatus ( pos.x, pos.y )
@@ -336,7 +343,7 @@ update msg model =
 
         ColumnStatus status ->
             case model.mouseDrag of
-                MouseDrag__WaitingForColumn rec ->
+                MouseDrag__WaitingForStatusColumnInfo rec ->
                     ( mapTask
                         rec.taskIndex
                         (Task_.setStatus status)
@@ -437,17 +444,19 @@ update msg model =
 {-| Some notes about the styling
 
 1.  The CSS styling is written in Elm, using the elm-css library, which basically
-    lets us write styling in our code. The end result is writing CSS, but in Elm syntax.
-    So the CSS "width: 40px;" would be in Elm "Css.width (Css.px 40)". The styling is also
-    written directly on the element that is being styled. There are no classes with Elm-Css,
-    they are generated at run time and are not human readable.
+    lets us write css styling in our code. The end result is writing CSS, but in Elm syntax.
+    So, the CSS "width: 40px;" would be in Elm "Css.width (Css.px 40)". The styling is also
+    written directly on the element that is being styled, so we don't really use classes
+    with Elm-Css. There are classes in the rendered html, but they are generated at run time
+    and are not human readable.
 
-2.  There is one additional layer of abstraction, which is the `Style` module, imported
-    as "S". Style.elm is inspired by the CSS framework "tailwind" (<https://tailwindcss.com/>).
+2.  There is an additional layer of abstraction for this apps styling, which is the `Style`
+    module, imported as "S". Style.elm is inspired by the CSS framework "tailwind" (<https://tailwindcss.com/>).
     I think of Tailwind as taking just the good parts of CSS, and then representing them as
     really tiny tags- not even key-values. For example, the tailwind equivalent of "padding: 1rem;"
     is "p4". "p" stands for "padding" and "4" is the size of the padding, which is 1rem (p1 would
-    be 1/4th of a rem).
+    be 1/4th of a rem). pt4 would be "padding-top: 1rem;". g1 is "gap: 0.25rem;" to list a few more
+    examples.
 
 -}
 
@@ -464,7 +473,8 @@ document model =
 
 
 {-| Styling that is applied to the whole page like a stylesheet. These styles
-are exceptional, as most styling is applied directly to the element
+are exceptional, as most styling in this app is done by applying it directly
+to the html.
 -}
 globalStyles : Html Msg
 globalStyles =
