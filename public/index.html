@@ -1,0 +1,39 @@
+<html>
+<head>
+    <script src="elm.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap"
+          rel="stylesheet">
+</head>
+<body>
+
+<script>
+    var app = Elm.Main.init({flags: {}})
+
+    app.ports.findColumnStatus.subscribe(function(coords) {
+        requestAnimationFrame(function() {
+            let x = coords[0];
+            let y = coords[1];
+
+            // what element is right under the cursor?
+            const dropTarget = document.elementFromPoint(x, y);
+
+            const statusCol = dropTarget.closest('.status');
+
+            if (!statusCol) {
+                return
+            }
+
+            statusAttr = statusCol.getAttribute('data-status')
+
+            if (!statusAttr) {
+                return
+            }
+
+            app.ports.columnStatus.send(statusAttr)
+        })
+    })
+</script>
+</body>
+</html>

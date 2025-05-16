@@ -1,0 +1,11 @@
+[package]
+name = "component-examples"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4"
+
+clap = { version = "4.5.30", features = ["derive"] }
+tokio = "1.44.1"
+notify = "6.1.1"
