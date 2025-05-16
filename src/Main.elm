@@ -137,16 +137,33 @@ type alias Flags =
     }
 
 
-init : Flags -> Model
-init flags =
-    { jsonTextField = flags.jsonText
-    , statuses = flags.statuses
-    , assignees = flags.assignees
-    , tasks = Array.fromList flags.tasks
-    , dialog = Dialog__None
-    , mouseDrag = MouseDrag__Ready
-    , mousePos = Nothing
-    }
+init : Result JD.Error Flags -> ( Model, Cmd msg )
+init flagsDecodeResult =
+    let
+        model : Model
+        model =
+            case flagsDecodeResult of
+                Ok flags ->
+                    { jsonTextField = flags.jsonText
+                    , statuses = flags.statuses
+                    , assignees = flags.assignees
+                    , tasks = Array.fromList flags.tasks
+                    , dialog = Dialog__None
+                    , mouseDrag = MouseDrag__Ready
+                    , mousePos = Nothing
+                    }
+
+                Err err ->
+                    { jsonTextField = ""
+                    , statuses = UniqueList.empty
+                    , assignees = UniqueList.empty
+                    , tasks = Array.empty
+                    , dialog = Dialog__Json { jsonParseError = Just err }
+                    , mouseDrag = MouseDrag__Ready
+                    , mousePos = Nothing
+                    }
+    in
+    ( model, Cmd.none )
 
 
 initJsonText : String
@@ -295,9 +312,7 @@ update msg model =
                 Ok flags ->
                     -- If we can parse the json text into `Flags`, simply
                     -- restart the whole app with the new flags
-                    ( init flags
-                    , Cmd.none
-                    )
+                    init (Ok flags)
 
                 Err error ->
                     -- If we cannot parse the json text into `Flags`, then
@@ -884,89 +899,13 @@ subscriptions model =
 --------------------------------------------------------
 
 
-type State
-    = State__Loaded Model
-    | State__Failed JD.Error
-
-
-main : Program JD.Value State Msg
+main : Program JD.Value Model Msg
 main =
-    let
-        init_ : JD.Value -> ( State, Cmd Msg )
-        init_ _ =
-            case parseJsonText initJsonText of
-                Ok flags ->
-                    let
-                        model : Model
-                        model =
-                            init flags
-
-                        state : State
-                        state =
-                            State__Loaded model
-                    in
-                    ( state, Cmd.none )
-
-                Err error ->
-                    ( State__Failed error, Cmd.none )
-
-        update_ : Msg -> State -> ( State, Cmd Msg )
-        update_ msg state =
-            case state of
-                State__Loaded model ->
-                    let
-                        ( newModel, cmd ) =
-                            update msg model
-
-                        newState =
-                            State__Loaded newModel
-                    in
-                    ( newState, cmd )
-
-                State__Failed error ->
-                    ( State__Failed error, Cmd.none )
-
-        subscriptions_ : State -> Sub Msg
-        subscriptions_ state =
-            case state of
-                State__Loaded model ->
-                    subscriptions model
-
-                State__Failed _ ->
-                    Sub.none
-
-        document_ : State -> Document Msg
-        document_ state =
-            case state of
-                State__Loaded model ->
-                    document model
-
-                State__Failed error ->
-                    { title = "Error"
-                    , body =
-                        [ globalStyles
-                        , DialogView.fromBody
-                            [ S.outdent
-                            , S.bgGray1
-                            , S.col
-                            , S.h128
-                            , S.w196
-                            , S.g4
-                            ]
-                            [ Html.div
-                                []
-                                [ Html.text "Error parsing JSON" ]
-                            , Textarea.readOnly (JD.errorToString error)
-                                |> Textarea.toHtml
-                            ]
-                            |> DialogView.toHtml
-                        ]
-                            |> List.map Html.toUnstyled
-                    }
-    in
     Browser.document
-        { init = init_
-        , update = update_
-        , subscriptions = subscriptions_
-        , view = document_
+        { init =
+            \_ ->
+                init (parseJsonText initJsonText)
+        , update = update
+        , subscriptions = subscriptions
+        , view = document
         }
