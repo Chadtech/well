@@ -19,7 +19,7 @@ and read the code.
 
 `src/Assignee.elm`, `src/Task_.elm`, and `src/Status.elm`, are all modules to represent specific domain entities of the app. 
 
-`src/AddTask.elm` is a sub-module for the Dialog box for adding a task. 
+`src/AddTask.elm` is a sub-module for the dialog box for adding a task. 
 
 ## /src/View
 The directory `src/View` is for re-usable view components like buttons, dropdowns, dialogs, and text fields.
